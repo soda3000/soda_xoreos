@@ -304,51 +304,53 @@ void ShaderSurface::delSurfaceVar(uint32_t index)
 	_variableData[index].flags &= ~(SHADER_SURFACE_VARIABLE_OWNED);
 
 	void *data = _variableData[index].data;
-	switch (_vertShader->variablesCombined[index].type) {
-		case SHADER_FLOAT:
-		case SHADER_VEC2:
-		case SHADER_VEC3:
-		case SHADER_VEC4: delete [] (static_cast<float *>(data)); break;
-		case SHADER_INT:
-		case SHADER_IVEC2:
-		case SHADER_IVEC3:
-		case SHADER_IVEC4: delete [] (static_cast<int *>(data)); break;
-//		case SHADER_UINT: break;
-//		case SHADER_UVEC2: break;
-//		case SHADER_UVEC3: break;
-//		case SHADER_UVEC4: break;
-//		case SHADER_BOOL: break;
-//		case SHADER_BVEC2: break;
-//		case SHADER_BVEC3: break;
-//		case SHADER_BVEC4: break;
-		case SHADER_MAT2:
-		case SHADER_MAT3:
-		case SHADER_MAT4: delete [] (static_cast<float *>(data)); break;
-		case SHADER_SAMPLER1D: break;
-		case SHADER_SAMPLER2D: break;
-		case SHADER_SAMPLER3D: break;
-		case SHADER_SAMPLERCUBE: break;
-		case SHADER_SAMPLER1DSHADOW: break;
-		case SHADER_SAMPLER2DSHADOW: break;
-		case SHADER_SAMPLER1DARRAY: break;
-		case SHADER_SAMPLER2DARRAY: break;
-		case SHADER_SAMPLER1DARRAYSHADOW: break;
-		case SHADER_SAMPLER2DARRAYSHADOW: break;
-		case SHADER_SAMPLERBUFFER: break;
-		case SHADER_ISAMPLER1D: break;
-		case SHADER_ISAMPLER2D: break;
-		case SHADER_ISAMPLER3D: break;
-		case SHADER_ISAMPLERCUBE: break;
-		case SHADER_ISAMPLER1DARRAY: break;
-		case SHADER_ISAMPLER2DARRAY: break;
-		case SHADER_USAMPLER1D: break;
-		case SHADER_USAMPLER2D: break;
-		case SHADER_USAMPLER3D: break;
-		case SHADER_USAMPLERCUBE: break;
-		case SHADER_USAMPLER1DARRAY: break;
-		case SHADER_USAMPLER2DARRAY: break;
-		case SHADER_UNIFORM_BUFFER: delete static_cast<ShaderUBO *>(data); break;
-		default: break;
+	if (!_vertShader->variablesCombined.empty()) {
+		switch (_vertShader->variablesCombined[index].type) {
+			case SHADER_FLOAT:
+			case SHADER_VEC2:
+			case SHADER_VEC3:
+			case SHADER_VEC4: delete [] (static_cast<float *>(data)); break;
+			case SHADER_INT:
+			case SHADER_IVEC2:
+			case SHADER_IVEC3:
+			case SHADER_IVEC4: delete [] (static_cast<int *>(data)); break;
+	//		case SHADER_UINT: break;
+	//		case SHADER_UVEC2: break;
+	//		case SHADER_UVEC3: break;
+	//		case SHADER_UVEC4: break;
+	//		case SHADER_BOOL: break;
+	//		case SHADER_BVEC2: break;
+	//		case SHADER_BVEC3: break;
+	//		case SHADER_BVEC4: break;
+			case SHADER_MAT2:
+			case SHADER_MAT3:
+			case SHADER_MAT4: delete [] (static_cast<float *>(data)); break;
+			case SHADER_SAMPLER1D: break;
+			case SHADER_SAMPLER2D: break;
+			case SHADER_SAMPLER3D: break;
+			case SHADER_SAMPLERCUBE: break;
+			case SHADER_SAMPLER1DSHADOW: break;
+			case SHADER_SAMPLER2DSHADOW: break;
+			case SHADER_SAMPLER1DARRAY: break;
+			case SHADER_SAMPLER2DARRAY: break;
+			case SHADER_SAMPLER1DARRAYSHADOW: break;
+			case SHADER_SAMPLER2DARRAYSHADOW: break;
+			case SHADER_SAMPLERBUFFER: break;
+			case SHADER_ISAMPLER1D: break;
+			case SHADER_ISAMPLER2D: break;
+			case SHADER_ISAMPLER3D: break;
+			case SHADER_ISAMPLERCUBE: break;
+			case SHADER_ISAMPLER1DARRAY: break;
+			case SHADER_ISAMPLER2DARRAY: break;
+			case SHADER_USAMPLER1D: break;
+			case SHADER_USAMPLER2D: break;
+			case SHADER_USAMPLER3D: break;
+			case SHADER_USAMPLERCUBE: break;
+			case SHADER_USAMPLER1DARRAY: break;
+			case SHADER_USAMPLER2DARRAY: break;
+			case SHADER_UNIFORM_BUFFER: delete static_cast<ShaderUBO *>(data); break;
+			default: break;
+		}
 	}
 
 	_variableData[index].data = 0;

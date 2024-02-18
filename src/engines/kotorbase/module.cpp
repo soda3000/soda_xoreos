@@ -341,9 +341,13 @@ void Module::loadTexturePack() {
 }
 
 void Module::unload(bool completeUnload) {
-	_ingame->resetSelection();
-	_ingame->hideSelection();
-
+	if (_ingame != nullptr) { // Ensure the pointer isn't already null, which could cause a segmentation fault crash.
+        _ingame->resetSelection();
+		_ingame->hideSelection();
+    } else {
+        // Handle the case where _ingame is null, e.g., log an error or throw an exception. Probably just do nothing for now.
+    }
+	
 	if (_pc) {
 		_pcInfo = _pc->getCreatureInfo();
 		_pc = nullptr;
