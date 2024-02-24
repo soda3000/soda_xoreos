@@ -20,6 +20,7 @@
 
 /** @file
  *  Creature within an area in KotOR games.
+ * 	A Creature can be a person, animal, monster, etc.
  */
 
 #ifndef ENGINES_KOTORBASE_CREATURE_H
@@ -156,6 +157,8 @@ public:
 
 	void playDefaultAnimation();
 	void playDefaultHeadAnimation();
+	// void playCombatIdleAnimation();
+	// void playCombatIdleHeadAnimation();
 	void playDrawWeaponAnimation();
 	void playAttackAnimation();
 	void playDodgeAnimation();
@@ -297,6 +300,7 @@ private:
 	void attachWeaponModel(InventorySlot slot);
 
 	void setDefaultAnimations();
+	void refreshDefaultAnimations();
 
 	void reloadEquipment();
 	bool addItemToEquipment(const Common::UString &tag, InventorySlot slot);

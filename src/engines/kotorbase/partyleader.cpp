@@ -50,6 +50,7 @@ void PartyLeaderController::stopMovement() {
 	_moving = false;
 }
 
+// Handle movement key presses and controller stick movements.
 bool PartyLeaderController::handleEvent(const Events::Event &e) {
 	switch (e.type) {
 		case Events::kEventKeyDown:
@@ -81,12 +82,14 @@ bool PartyLeaderController::handleEvent(const Events::Event &e) {
 	}
 }
 
+// Move the player according to the movement inputs processed.
 bool PartyLeaderController::processMovement(float frameTime) {
 	Creature *partyLeader = _module->getPartyLeader();
 
 	bool moveForwards = _forwardMovementWanted && !_backwardMovementWanted;
 	bool moveBackwards = !_forwardMovementWanted && _backwardMovementWanted;
 
+	// When no movement inputs detected, play idle standing animation and reset moving flag.
 	if (!moveForwards && !moveBackwards) {
 		if (_moving) {
 			partyLeader->playDefaultAnimation();
@@ -95,20 +98,26 @@ bool PartyLeaderController::processMovement(float frameTime) {
 		return false;
 	}
 
+	// Clear any queued actions and stop combat when movement inputs detected.
 	partyLeader->clearActions();
-	partyLeader->cancelCombat();
+	if (partyLeader->isInCombat()) { 
+		partyLeader->cancelCombat(); // since cancelCombat is used for gameplay functionality, don't execute it without reason.
+	}
 
+
+	// Get details about current location, angles, and move speed.
 	float x, y, _;
 	partyLeader->getPosition(x, y, _);
 	float yaw = _module->getCameraYaw();
 	float newX, newY;
 	float moveRate = partyLeader->getRunRate();
 
+	// Forward movement
 	if (moveForwards) {
 		partyLeader->setOrientation(0.0f, 0.0f, 1.0f, Common::rad2deg(yaw));
 		newX = x - moveRate * sin(yaw) * frameTime;
 		newY = y + moveRate * cos(yaw) * frameTime;
-	} else {
+	} else { // Backward movement
 		partyLeader->setOrientation(0.0f, 0.0f, 1.0f, 180 + Common::rad2deg(yaw));
 		newX = x + moveRate * sin(yaw) * frameTime;
 		newY = y - moveRate * cos(yaw) * frameTime;
@@ -123,6 +132,7 @@ bool PartyLeaderController::processMovement(float frameTime) {
 		}
 	}
 
+	// Start the running animation and set the moving flag.
 	if (!_moving) {
 		partyLeader->playAnimation(Common::UString("run"), false, -1.0f);
 		_moving = true;

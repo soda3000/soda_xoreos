@@ -744,20 +744,26 @@ void Creature::playAttackAnimation() {
 
 	if (rightWeapon && !leftWeapon) {
 		switch (rightWeapon->getWeaponWield()) {
-			case kWeaponWieldBaton:
-				_model->playAnimation("g1a1");
+			case kWeaponWieldBaton: // Baton weapon
+				_model->playAnimation("g1a1"); // Default attack animation
+				// TODO - Add sound for baton attack
+				//playSound("");
 				break;
-			case kWeaponWieldSword:
-				_model->playAnimation("g2a1");
+			case kWeaponWieldSword: // Single melee
+				_model->playAnimation("g2a1"); // Default attack animation
+				//playSound("");
 				break;
-			case kWeaponWieldStaff:
-				_model->playAnimation("g3a1");
+			case kWeaponWieldStaff: // Two handed melee
+				_model->playAnimation("g3a1"); // Default attack animation
+				//playSound("");
 				break;
-			case kWeaponWieldPistol:
-				_model->playAnimation("b5a1");
+			case kWeaponWieldPistol: // Single pistol
+				_model->playAnimation("b5a1"); // Default attack animation
+				//playSound("");
 				break;
-			case kWeaponWieldRifle:
-				_model->playAnimation("b7a1");
+			case kWeaponWieldRifle: // Two handed blaster
+				_model->playAnimation("b7a1"); // Default attack animation
+				//playSound("");
 				break;
 			default:
 				break;
@@ -767,11 +773,13 @@ void Creature::playAttackAnimation() {
 
 	if (rightWeapon && leftWeapon) {
 		switch (rightWeapon->getWeaponWield()) {
-			case kWeaponWieldSword:
-				_model->playAnimation("g4a1");
+			case kWeaponWieldSword: // Dual melee weapons
+				_model->playAnimation("g4a1"); // Default attack animation
+				//playSound("");
 				break;
-			case kWeaponWieldPistol:
-				_model->playAnimation("b6a1");
+			case kWeaponWieldPistol: // Dual pistols
+				_model->playAnimation("b6a1"); // Default attack animation
+				//playSound("");
 				break;
 			default:
 				break;
@@ -779,7 +787,7 @@ void Creature::playAttackAnimation() {
 		return;
 	}
 
-	_model->playAnimation("g8a1");
+	_model->playAnimation("g8a1"); // Default attack animation
 }
 
 void Creature::playDodgeAnimation() {
@@ -840,88 +848,119 @@ int Creature::getAttackRound() const {
 	return _attackRound;
 }
 
+// This method returns the object that the creature is attempting to attack.
 Object *Creature::getAttemptedAttackTarget() const {
 	return _attemptedAttackTarget;
 }
 
+// This method sets the object that the creature is attempting to attack.
 void Creature::setAttemptedAttackTarget(Object *target) {
 	_attemptedAttackTarget = target;
 }
 
+// This method starts a combat round with a specified target and round number.
 void Creature::startCombat(Object *target, int round) {
-	_inCombat = true;
-	_attackTarget = target;
-	_attackRound = round;
+	warning("DEBUG: combat started.");
+	_inCombat = true; // The creature is now in combat.
+	_attackTarget = target; // The target of the creature's attack is set.
+	_attackRound = round; // The round number is set.
+	refreshDefaultAnimations();
 }
 
+// Refresh the default animations of a creature. Used for entering and exiting combat and changing the idle animations.
+void Creature::refreshDefaultAnimations() {
+	//warning("refreshDefaultAnimations triggered.");
+	_model->clearDefaultAnimations();
+	setDefaultAnimations();
+	_model->playDefaultAnimation();
+	//warning("refreshDefaultAnimations completed.");
+}
+
+// This method cancels the combat by setting the creature out of combat.
 void Creature::cancelCombat() {
-	_inCombat = false;
+	//warning("combat ended.");
+	_inCombat = false; // The creature is no longer in combat.
+	refreshDefaultAnimations();
 }
 
+// This method executes an attack on a target object.
 void Creature::executeAttack(Object *target) {
-	const Item *leftWeapon = getEquipedItem(kInventorySlotLeftWeapon);
-	const Item *rightWeapon = getEquipedItem(kInventorySlotRightWeapon);
-	int damage;
+	const Item *leftWeapon = getEquipedItem(kInventorySlotLeftWeapon); // Get the left weapon equipped by the creature.
+	const Item *rightWeapon = getEquipedItem(kInventorySlotRightWeapon); // Get the right weapon equipped by the creature.
+	int damage; // Variable to store the calculated damage.
 
-	if (rightWeapon && leftWeapon)
-		damage = computeWeaponDamage(leftWeapon) + computeWeaponDamage(rightWeapon);
-	else if (rightWeapon)
-		damage = computeWeaponDamage(rightWeapon);
-	else
-		damage = 1 + _info.getAbilityModifier(kAbilityStrength);
+	// Calculate the damage based on the weapons equipped.
+	if (rightWeapon && leftWeapon) // If both weapons are equipped.
+		damage = computeWeaponDamage(leftWeapon) + computeWeaponDamage(rightWeapon); // Damage is the sum of both weapons' damage.
+	else if (rightWeapon) // If only the right weapon is equipped.
+		damage = computeWeaponDamage(rightWeapon); // Damage is the right weapon's damage.
+	else // If no weapons are equipped.
+		damage =  1 + _info.getAbilityModifier(kAbilityStrength); // Damage is based on the creature's strength ability modifier.
 
-	int hp = target->getCurrentHitPoints() - damage;
-	int minHp = target->getMinOneHitPoints() ? 1 : 0;
+	// Calculate the new hit points of the target after the attack.
+	int hp = target->getCurrentHitPoints() - damage; // Subtract the damage from the target's current hit points.
+	int minHp = target->getMinOneHitPoints() ?  1 :  0; // Get the minimum hit points for the target.
 
+
+	// Check if the target's hit points have dropped to or below the minimum.
 	if (hp <= minHp) {
-		hp = minHp;
-		cancelCombat();
+		hp = minHp; // Ensure the target's hit points do not go below the minimum.
+		cancelCombat(); // Cancel the combat since the target is dead.
 	}
 
+	// Set the target's new hit points.
 	target->setCurrentHitPoints(hp);
 
-	debugC(Common::kDebugEngineLogic, 1,
+	// Log the attack event.
+	debugC(Common::kDebugEngineLogic,  1,
 	       "Object \"%s\" was hit by \"%s\", has %d/%d HP",
 	       target->getTag().c_str(), _tag.c_str(), hp, target->getMaxHitPoints());
 }
 
+// This method checks if the creature is dead.
 bool Creature::isDead() const {
-	return _dead;
+	return _dead; // Return true if the creature is dead, false otherwise.
 }
 
+// This method handles the death of the creature.
 bool Creature::handleDeath() {
-	if (!_dead && _currentHitPoints <= 0) {
-		_dead = true;
-		_model->clearDefaultAnimations();
-		_model->addDefaultAnimation("dead", 100);
-		_model->playAnimation("die", false);
-		return true;
+	if (!_dead && _currentHitPoints <=  0) { // If the creature is not already dead and its hit points are zero or less.
+		_dead = true; // The creature is now dead.
+		_model->clearDefaultAnimations(); // Clear any default animations on the creature's model.
+		_model->addDefaultAnimation("dead",  100); // Add a "dead" animation to the creature's model.
+		_model->playAnimation("die", false); // Play the "die" animation on the creature's model.
+		setUsable(false); // This makes it so you cannot hover or click on the enemy, aka the red circle doesn't show up.
+		return true; // Return true to indicate that the death was handled.
 	}
-	return false;
+	return false; // Return false if the creature is not dead.
 }
 
+// This method handles the event when the creature sees an object.
 void Creature::handleObjectSeen(Object &object) {
-	bool inserted = _seenObjects.insert(&object).second;
-	if (inserted)
-		debugC(Common::kDebugEngineLogic, 2,
+	bool inserted = _seenObjects.insert(&object).second; // Try to insert the object into the set of seen objects.
+	if (inserted) // If the object was successfully inserted.
+		debugC(Common::kDebugEngineLogic,  2,
 			"Creature \"%s\" have seen \"%s\"",
-			_tag.c_str(), object.getTag().c_str());
+			_tag.c_str(), object.getTag().c_str()); // Log the event.
 }
 
+// This method handles the event when the creature no longer sees an object.
 void Creature::handleObjectVanished(Object &object) {
-	size_t countErased = _seenObjects.erase(&object);
-	if (countErased != 0)
-		debugC(Common::kDebugEngineLogic, 2,
+	size_t countErased = _seenObjects.erase(&object); // Try to remove the object from the set of seen objects.
+	if (countErased !=  0) // If the object was successfully removed.
+		debugC(Common::kDebugEngineLogic,  2,
 			"Object \"%s\" have vanished from \"%s\"",
-			object.getTag().c_str(), _tag.c_str());
+			object.getTag().c_str(), _tag.c_str()); // Log the event.
 }
 
+// This method handles the event when the creature hears an object.
 void Creature::handleObjectHeard(Object &object) {
-	_heardObjects.insert(&object);
+	_heardObjects.insert(&object); // Insert the object into the set of heard objects.
 }
 
+// This method handles the event when the creature no longer hears an object.
 void Creature::handleObjectInaudible(Object &object) {
-	_heardObjects.erase(&object);
+	_heardObjects.erase(&object); // Remove the object from the set of heard objects.
 }
 
 void Creature::playHeadAnimation(const Common::UString &anim, bool restart, float length, float speed) {
@@ -961,10 +1000,63 @@ void Creature::setDefaultAnimations() {
 	if (!_model)
 		return;
 
-	if (_modelType == "S" || _modelType == "L")
-		_model->addDefaultAnimation("cpause1", 100);
-	else
-		_model->addDefaultAnimation("pause1", 100);
+	// Default animations should be combat animations if in combat.
+	if (isInCombat()) {
+		warning("DEBUG: isInCombat = TRUE.");
+		int number = getWeaponAnimationNumber();
+		if (number != -1) {
+			warning("DEBUG: switch case began.");
+			switch (number)
+			{
+			case 1: // Baton
+				warning("DEBUG: number = 1");
+				_model->addDefaultAnimation("g1r1", 100);
+				break;
+			case 2: // One Melee
+				warning("DEBUG: number = 2");
+				_model->addDefaultAnimation("g2r1", 100);
+				break;
+			case 3: // Double-Bladed Melee
+				warning("DEBUG: number = 3");
+				_model->addDefaultAnimation("g3r1", 100);
+				break;	
+			case 4: // Two Melees
+				warning("DEBUG: number = 4");
+				_model->addDefaultAnimation("g4r1", 100);
+				break;
+			case 5: // One Pistol
+				warning("DEBUG: number = 5");
+				_model->addDefaultAnimation("g5r1", 100);
+				break;
+			case 6: // Two Pistols
+				warning("DEBUG: number = 6");
+				_model->addDefaultAnimation("g6r1", 100);
+				break;
+			case 7: // Large Blaster
+				warning("DEBUG: number = 7");
+				_model->addDefaultAnimation("g7r1", 100);
+				break;
+			case 8: // Everything else.
+				warning("DEBUG: number = 8");
+				_model->addDefaultAnimation("g8r1", 100);
+				break;
+			default:
+				warning("DEBUG: default case.");
+				break;
+			}
+		}
+	}
+	else {
+		//warning("DEBUG: isInCombat = FALSE.");
+		if (_modelType == "S" || _modelType == "L") {
+			_model->addDefaultAnimation("cpause1", 100);
+			//warning("DEBUG: cpause1 set.");
+		}
+		else {
+			_model->addDefaultAnimation("pause1", 100);
+			//warning("DEBUG: cpause1 set.");
+		}
+	}
 }
 
 void Creature::reloadEquipment() {
